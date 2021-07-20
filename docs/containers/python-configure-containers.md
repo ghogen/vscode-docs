@@ -6,7 +6,17 @@ DateApproved: 03/03/2021
 MetaDescription: How to setup a non-root user for VS Code Docker extension
 ---
 
+[]
+
+# Run a container as a non-root user
+
 # Configure your Python containers
+
+[note: .NET is non-root by default]
+[Node is not yet non-root by default - hold off due to other packages and their dependencies - investigate - packages might break but that could be OK - Brandon to talk with Phil]
+[ add line in Dockerfile to function as the user defined in the Node base image]
+
+[don't show the Dockerfile for each language]
 
 When containerizing an application for production, your goal should be to port existing code into a separate runtime environment without introducing unforeseen security concerns. For this reason, we recommend selecting the default port for **Python: Django** (8000) or **Python: Flask** (5000) when executing the **Add Dockerfiles to Workspace** command, or opting for a port **greater than** 1023. This will allow VS Code to configure the Dockerfile with non-root access and prevent a malicious user from elevating permissions in the container, ultimately [obtaining host machine root access](https://nvd.nist.gov/vuln/detail/CVE-2019-5736). When you choose **Python: General**, there is no port selection, so the Docker extension configures non-root access by default. In all cases, you must ensure each resource (such as ports and files) modified or used by your application [can be accessed](#invalid-file-permissions-in-the-container) by a non-root user in your container.
 
@@ -27,6 +37,13 @@ The **Add Dockerfiles to Workspace** command for Django and Flask automatically 
 - Overwrite your current Dockerfile and `tasks.json`.
 
 If you chose **Python: General**, non-root privileges will be set up by default, but you may want to modify your Dockerfile and `tasks.json` as described below to add port access.
+
+[If you are using Node, consider these changes to support non-root scenarios]
+
+[make a backup of your Dockerfile before you run **Add Dockerfiles to Workspace**]
+[It's up to you to figure out what might be important in your old Dockerfile]
+[could be they want to opt in to debugging, so that is a scenario where you would run the **Add Dockerfile **]
+[not possible to ]
 
 ### Docker file changes
 
@@ -51,6 +68,8 @@ CMD ["gunicorn", "--bind", "0.0.0.0:1024", "pythonPath.to.wsgi"]
 ```
 
 ### Modifications to tasks.json for Django\Flask apps
+
+[]
 
 After choosing a non-system port and setting up the container to run as a non-root user, we must ensure the `docker run` task within `tasks.json` also expects the same port.
 
@@ -147,6 +166,8 @@ RUN chown -R appuser /extra
 
 ### Invalid file permissions on the host (Linux)
 
+[General tips and tricks language-neutral article]
+
 In the previous example, we showed you how to add permissions to a file or folder on the container as a non-root user. However, if you are trying to access a folder **on the host machine** from within the container as a non-root user, the user ID or group ID in the container must have access to the files on the host. To solve this issue in Linux, you might need to set file access control lists (setfacl).
 
 If you have a folder named `/share` on your host machine and try to access this folder before the access control list is properly set, you will likely receive this error:
@@ -193,7 +214,7 @@ If you hit `kb(workbench.action.debug.start)` to start your container and it imm
   ![User clicking view logs on their container](images/quickstarts/python-user-rights-view-logs.png)
 
 In a Django app, you may see the error:
-
+[don't need to call out Django here]
 ```text
 Error: You don't have permission to access that port.
 ```
@@ -208,3 +229,8 @@ PermissionError: [Errno 13] Permission denied
 The image above is a problematic configuration because a port **less than** 1024 was selected.
 
 To solve this issue, modify your Dockerfile and `tasks.json` file in the manner shown in the [Running your containerized app as a non-root user](#running-your-containerized-app-as-a-nonroot-user) section.
+[redundant since this was previously mentioned]
+
+[First, strip out Python-specific language]
+[Consider moving up the Django/Flask into a python callout section]
+[general OS issues such as Linux file permissions should be grouped together- recommend Add Docker Files to workspace]
